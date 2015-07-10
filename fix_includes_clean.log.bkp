@@ -1,0 +1,81 @@
+libraries/AP_HAL/examples/RCInput/RCInput.cpp:35: more than one match for inclusion of UARTDriver.h
+    possible paths:
+    AP_HAL/UARTDriver.h
+    AP_HAL_AVR/UARTDriver.h
+    AP_HAL_Empty/UARTDriver.h
+    AP_HAL_FLYMAPLE/UARTDriver.h
+    AP_HAL_Linux/UARTDriver.h
+    AP_HAL_PX4/UARTDriver.h
+    AP_HAL_SITL/UARTDriver.h
+    AP_HAL_VRBRAIN/UARTDriver.h
+libraries/AP_HAL/examples/RCInputToRCOutput/RCInputToRCOutput.cpp:38: more than one match for inclusion of UARTDriver.h
+    possible paths:
+    AP_HAL/UARTDriver.h
+    AP_HAL_AVR/UARTDriver.h
+    AP_HAL_Empty/UARTDriver.h
+    AP_HAL_FLYMAPLE/UARTDriver.h
+    AP_HAL_Linux/UARTDriver.h
+    AP_HAL_PX4/UARTDriver.h
+    AP_HAL_SITL/UARTDriver.h
+    AP_HAL_VRBRAIN/UARTDriver.h
+libraries/AP_HAL/examples/RCOutput/RCOutput.cpp:35: more than one match for inclusion of UARTDriver.h
+    possible paths:
+    AP_HAL/UARTDriver.h
+    AP_HAL_AVR/UARTDriver.h
+    AP_HAL_Empty/UARTDriver.h
+    AP_HAL_FLYMAPLE/UARTDriver.h
+    AP_HAL_Linux/UARTDriver.h
+    AP_HAL_PX4/UARTDriver.h
+    AP_HAL_SITL/UARTDriver.h
+    AP_HAL_VRBRAIN/UARTDriver.h
+libraries/AP_HAL/examples/Storage/Storage.cpp:35: more than one match for inclusion of UARTDriver.h
+    possible paths:
+    AP_HAL/UARTDriver.h
+    AP_HAL_AVR/UARTDriver.h
+    AP_HAL_Empty/UARTDriver.h
+    AP_HAL_FLYMAPLE/UARTDriver.h
+    AP_HAL_Linux/UARTDriver.h
+    AP_HAL_PX4/UARTDriver.h
+    AP_HAL_SITL/UARTDriver.h
+    AP_HAL_VRBRAIN/UARTDriver.h
+libraries/AP_HAL/examples/UART_test/UART_test.cpp:35: more than one match for inclusion of UARTDriver.h
+    possible paths:
+    AP_HAL/UARTDriver.h
+    AP_HAL_AVR/UARTDriver.h
+    AP_HAL_Empty/UARTDriver.h
+    AP_HAL_FLYMAPLE/UARTDriver.h
+    AP_HAL_Linux/UARTDriver.h
+    AP_HAL_PX4/UARTDriver.h
+    AP_HAL_SITL/UARTDriver.h
+    AP_HAL_VRBRAIN/UARTDriver.h
+libraries/RC_Channel/examples/RC_Channel/RC_Channel.cpp:46: more than one match for inclusion of UARTDriver.h
+    possible paths:
+    AP_HAL/UARTDriver.h
+    AP_HAL_AVR/UARTDriver.h
+    AP_HAL_Empty/UARTDriver.h
+    AP_HAL_FLYMAPLE/UARTDriver.h
+    AP_HAL_Linux/UARTDriver.h
+    AP_HAL_PX4/UARTDriver.h
+    AP_HAL_SITL/UARTDriver.h
+    AP_HAL_VRBRAIN/UARTDriver.h
+ArduPlane/px4_mixer.cpp:23: couldn't find a match for inclusion of modules/px4iofirmware/protocol.h
+libraries/AP_HAL_PX4/GPIO.cpp:18: couldn't find a match for inclusion of modules/px4iofirmware/protocol.h
+libraries/GCS_MAVLink/include/mavlink/v1.0/mavlink_helpers.h:222: more than one match for inclusion of mavlink.h
+    possible paths:
+    GCS_MAVLink/include/mavlink/v1.0/ardupilotmega/mavlink.h
+    GCS_MAVLink/include/mavlink/v1.0/common/mavlink.h
+libraries/GCS_MAVLink/include/mavlink/v1.0/mavlink_helpers.h:447: more than one match for inclusion of mavlink.h
+    possible paths:
+    GCS_MAVLink/include/mavlink/v1.0/ardupilotmega/mavlink.h
+    GCS_MAVLink/include/mavlink/v1.0/common/mavlink.h
+libraries/GCS_MAVLink/include/mavlink/v1.0/mavlink_helpers.h:497: more than one match for inclusion of mavlink.h
+    possible paths:
+    GCS_MAVLink/include/mavlink/v1.0/ardupilotmega/mavlink.h
+    GCS_MAVLink/include/mavlink/v1.0/common/mavlink.h
+Tools/ArduPPM/ATMega32U2/LUFA/Scheduler/Scheduler.h:56: couldn't find a match for inclusion of LUFA/Scheduler/Scheduler.h
+libraries/AP_HAL_AVR/examples/LCDTest/LCrystal.h:5: couldn't find a match for inclusion of ../AP_HAL/utility/Print.h
+libraries/AP_Limits/AP_Limit_Geofence.h:17: couldn't find a match for inclusion of ../StorageManager/StorageManager.h
+libraries/AP_Mission/AP_Mission.h:25: couldn't find a match for inclusion of ../StorageManager/StorageManager.h
+libraries/AP_Param/AP_Param.h:32: couldn't find a match for inclusion of ../StorageManager/StorageManager.h
+libraries/AP_Rally/AP_Rally.h:23: couldn't find a match for inclusion of ../StorageManager/StorageManager.h
+Tools/APM2_2560_bootloader/stk500boot.c:94: couldn't find a match for inclusion of avr/common.h
