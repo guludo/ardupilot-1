@@ -3892,7 +3892,7 @@ void NavEKF2_core::readMagData()
         magMeasTime_ms = imuSampleTime_ms - frontend.magDelay_ms;
 
         // read compass data and scale to improve numerical conditioning
-        magDataNew.mag = _ahrs->get_compass()->get_field() * 0.001f;
+        magDataNew.mag = _ahrs->get_compass()->get_field_milligauss() * 0.001f;
 
         // check for consistent data between magnetometers
         consistentMagData = _ahrs->get_compass()->consistent();
