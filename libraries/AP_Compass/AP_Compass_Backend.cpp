@@ -43,7 +43,7 @@ void AP_Compass_Backend::publish_raw_field(const Vector3f &mag, uint32_t time_us
 
     state.last_update_ms = hal.scheduler->millis();
     state.last_update_usec = hal.scheduler->micros();
-    state.raw_field = mag;
+    state.raw_field = mag * state.milligauss_ratio;
     state.raw_meas_time_us = time_us;
     state.updated_raw_field = true;
     state.has_raw_field = true;
@@ -68,6 +68,7 @@ void AP_Compass_Backend::correct_field(Vector3f &mag, uint8_t i)
      * note that _motor_offset[] is kept even if compensation is not
      * being applied so it can be logged correctly
      */
+    mag *= state.milligauss_ratio;
     mag += offsets;
     if(_compass._motor_comp_type != AP_COMPASS_MOT_COMP_DISABLED && !is_zero(_compass._thr_or_curr)) {
         state.motor_offset = mot * _compass._thr_or_curr;
