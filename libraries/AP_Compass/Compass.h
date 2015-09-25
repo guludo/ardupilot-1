@@ -119,9 +119,7 @@ public:
     uint8_t get_count(void) const { return _compass_count; }
 
     /// Return the current field as a Vector3f
-    const Vector3f &get_field(uint8_t i) const { return _state[i].field; }
-    const Vector3f &get_field(void) const { return get_field(get_primary()); }
-    const Vector3f get_field_milligauss(uint8_t i) const { return get_field(i) * _state[i].milligauss_ratio; }
+    const Vector3f get_field_milligauss(uint8_t i) const { return _state[i].field * _state[i].milligauss_ratio; }
     const Vector3f get_field_milligauss(void) const { return get_field_milligauss(get_primary()); }
 
     // raw/unfiltered measurement interface
