@@ -15,6 +15,16 @@ class mavgen(Task.Task):
     color   = 'GREEN'
     run_str = '${PYTHON} ${MAVGEN} --lang=C --wire-protocol=1.0 --output ${TGT} ${SRC}'
 
+    def post_run(self):
+        super(Task.Task, self).post_run()
+        real_outputs = []
+        for node in self.outputs:
+            real_outputs.extend(node.ant_glob("*.h **/*.h", remove=False))
+
+        self.outputs = real_outputs
+
+mavgen = Task.update_outputs(mavgen)
+
 def options(opt):
     opt.load('python')
 
