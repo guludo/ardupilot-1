@@ -30,6 +30,7 @@ def libgtest(bld, **kw):
         target='gtest/gtest',
         includes='modules/gtest/ modules/gtest/include',
         export_includes='modules/gtest/include',
+        cxxflags='-Wno-undef',
         name='GTEST',
     )
     return bld.stlib(**kw)
