@@ -102,6 +102,7 @@ def ap_program(bld, program_group='bin',
         kw['defines'].extend(_get_legacy_defines(bld.path.name))
 
     kw['features'] = common_features(bld) + kw.get('features', [])
+    kw['features'].append('ap_program')
 
     name = os.path.join(program_group, program_name)
 
@@ -145,6 +146,7 @@ def ap_stlib(bld, **kw):
 
     sources = []
     libraries = kw['libraries'] + bld.env.AP_LIBRARIES
+    kw['features'] = kw.get('features', []) + ['ap_stlib']
 
     for lib_name in libraries:
         lib_node = bld.srcnode.find_dir('libraries/' + lib_name)
