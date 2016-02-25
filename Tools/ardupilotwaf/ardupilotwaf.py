@@ -105,7 +105,11 @@ def ap_program(bld, program_group='bin',
 
     name = os.path.join(program_group, program_name)
 
-    tg = bld.program(
+    tg_constructor = bld.program
+    if bld.env.AP_PROGRAM_AS_STLIB:
+        tg_constructor = bld.stlib
+
+    tg = tg_constructor(
         target='#%s' % name,
         name=name,
         **kw
