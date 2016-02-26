@@ -245,7 +245,7 @@ def process_cmake_build(self):
     if not getattr(self.config_taskgen, 'posted', False):
         self.config_taskgen.post()
 
-    tsk = self.config_taskgen.create_cmake_build_task(self.cmake_target)
+    tsk = self.create_cmake_build_task(self.cmake_config, self.cmake_target)
     self.cmake_build_task = tsk
 
     outputs = Utils.to_list(getattr(self, 'target', ''))
@@ -273,22 +273,20 @@ def cmake_build(self, cmake_target, **kw):
     return self.bld(**kw)
 
 @taskgen_method
-def create_cmake_build_task(self, cmake_target):
-    if not 'cmake_configure' in self.features:
-        self.bld.fatal('cmake_build: this is not a cmake_configure taskgen')
-
+def create_cmake_build_task(self, cmake_config, cmake_target):
     # NOTE: we'll probably need to use the full class name in waf 1.9
     tsk = self.create_task('cmake_build')
-    tsk.config_taskgen = self
+    config_tg = self.bld.get_tgen_by_name(cmake_config)
+    tsk.config_taskgen = config_tg
     tsk.cmake_target = cmake_target
     tsk.output_patterns = []
-    tsk.env.CMAKE_BLD_DIR = self.cmake_bld.abspath()
+    tsk.env.CMAKE_BLD_DIR = config_tg.cmake_bld.abspath()
     tsk.env.CMAKE_TARGET = cmake_target
-    tsk.set_run_after(self.cmake_config_task)
+    tsk.set_run_after(config_tg.cmake_config_task)
 
-    if self.last_build_task:
-        tsk.set_run_after(self.last_build_task)
-    self.last_build_task = tsk
+    if config_tg.last_build_task:
+        tsk.set_run_after(config_tg.last_build_task)
+    config_tg.last_build_task = tsk
 
     return tsk
 
