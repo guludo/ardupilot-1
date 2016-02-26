@@ -34,6 +34,9 @@ class Board:
             else:
                 cfg.env.prepend_value(k, val)
 
+        cfg.load('toolchain')
+        cfg.load('compiler_cxx compiler_c')
+
     def configure_env(self, cfg, env):
         # Use a dictionary instead of the convetional list for definitions to
         # make easy to override them. Convert back to list before consumption.
