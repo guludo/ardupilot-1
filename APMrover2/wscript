@@ -16,6 +16,7 @@ def build(bld):
             'AP_Mount',
             'AP_Navigation',
             'AP_RCMapper',
+            'AP_RPM',
             'AP_RSSI',
             'AP_Relay',
             'AP_ServoRelayEvents',

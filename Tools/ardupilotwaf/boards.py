@@ -179,8 +179,8 @@ class navio(linux):
         )
 
 class navio2(linux):
-    def configure_env(self, env):
-        super(navio2, self).configure_env(env)
+    def configure_env(self, cfg, env):
+        super(navio2, self).configure_env(cfg, env)
 
         env.TOOLCHAIN = 'arm-linux-gnueabihf'
         env.DEFINES.update(

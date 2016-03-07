@@ -36,7 +36,7 @@ def px4_dynamic_env(self):
     self.env.append_value('INCLUDES', _dynamic_env_data['include_dirs'])
     self.env.prepend_value('CXXFLAGS', _dynamic_env_data['cxx_flags'])
     self.env.prepend_value('CXXFLAGS', _dynamic_env_data['definitions'])
-    self.env.DEFINES += _dynamic_env_data['DEFINES']
+    self.env.append_value('DEFINES', _dynamic_env_data['DEFINES'])
 
 # Single static library
 # NOTE: This only works only for local static libraries dependencies - fake
@@ -109,8 +109,6 @@ class px4_copy(Task.Task):
     def __str__(self):
         return self.outputs[0].path_from(self.outputs[0].ctx.launch_node())
 
-_firmware_semaphorish_tasks = []
-
 class px4_add_git_hashes(Task.Task):
     run_str = '${PYTHON} ${PX4_ADD_GIT_HASHES} --ardupilot ${PX4_APM_ROOT} --px4 ${PX4_ROOT} --nuttx ${PX4_NUTTX_ROOT} --uavcan ${PX4_UAVCAN_ROOT} ${SRC} ${TGT}'
     color = 'CYAN'
@@ -121,6 +119,14 @@ class px4_add_git_hashes(Task.Task):
     def __str__(self):
         return self.outputs[0].path_from(self.outputs[0].ctx.launch_node())
 
+def _update_firmware_sig(fw_task, firmware):
+    original_post_run = fw_task.post_run
+    def post_run():
+        original_post_run()
+        firmware.sig = firmware.cache_sig = Utils.h_file(firmware.abspath())
+    fw_task.post_run = post_run
+
+_firmware_semaphorish_tasks = []
 _upload_task = []
 
 @feature('px4_ap_program')
@@ -148,21 +154,26 @@ def px4_firmware(self):
     if _firmware_semaphorish_tasks:
         for t in _firmware_semaphorish_tasks:
             cp_lib.set_run_after(t)
+    _firmware_semaphorish_tasks = []
 
     fw_task = self.create_cmake_build_task(
         'px4',
         'build_firmware_px4fmu-v%s' % version,
     )
+    fw_task.set_run_after(cp_lib)
+    fw_task.set_run_after(cp_px4io)
+    fw_task.set_run_after(cp_bl)
+
     firmware = fw_task.config_taskgen.cmake_bld.make_node(
         'src/firmware/nuttx/nuttx-px4fmu-v%s-apm.px4' % version,
     )
-    fw_task.set_outputs(firmware)
-    fw_task.set_run_after(cp_lib)
-    fw_task.dep_nodes.extend([romfs_px4io, romfs_bootloader])
+    _update_firmware_sig(fw_task, firmware)
 
-    path = os.path.join(self.program_group, '%s.px4' % self.program_name)
-    fw_dest = self.bld.bldnode.make_node(path)
+    fw_dest = self.bld.bldnode.make_node(
+        os.path.join(self.program_group, '%s.px4' % self.program_name)
+    )
     git_hashes = self.create_task('px4_add_git_hashes', firmware, fw_dest)
+    git_hashes.set_run_after(fw_task)
     _firmware_semaphorish_tasks.append(git_hashes)
 
     if self.bld.options.upload:

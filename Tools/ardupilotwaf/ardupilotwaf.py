@@ -72,6 +72,8 @@ def ap_get_all_libraries(bld):
             continue
         if name.startswith('AP_HAL'):
             continue
+        if name == 'SITL':
+            continue
         libraries.append(name)
     libraries.extend(['AP_HAL', 'AP_HAL_Empty'])
     return libraries
