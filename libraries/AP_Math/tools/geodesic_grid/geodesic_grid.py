@@ -124,6 +124,10 @@ Generate C++ code for the initialization of members _inverses and _mid_inverses
 declared in AP_GeodesicGrid.h.
 """)
 
+parser.add_argument(
+    '--normalized-centroids-gen',
+    action='store_true',
+)
 
 args = parser.parse_args()
 
@@ -278,6 +282,24 @@ if args.inverses_gen:
         print("     {%9.6ff, %9.6ff, %9.6ff}," % (m[1,0], m[1,1], m[1,2]))
         print("     {%9.6ff, %9.6ff, %9.6ff}}," % (m[2,0], m[2,1], m[2,2]))
     print("};")
+
+if args.normalized_centroids_gen:
+    print("Normalized centroids code generation:")
+    print_code_gen_notice()
+    print("const Vector3f AP_GeodesicGrid::_normalized_centroids[80]{")
+    for i in range(20):
+        a, b, c = ico.triangles[i]
+        ma, mb, mc = .5 * (a + b), .5 * (b + c), .5 * (c + a)
+        subtriangles = (
+            (ma, mb, mc),
+            (a,  ma, mc),
+            (ma,  b, mb),
+            (mc, mb,  c),
+        )
+        for a, b, c in subtriangles:
+            print("    {%9.6ff, %9.6ff, %9.6ff}," % (a + b + c).normalized())
+    print("};")
+
 
 
 if args.icosahedron:

@@ -161,6 +161,8 @@ private:
      * neighbor umbrella of T with respect to e is the umbrella of w.
      */
 
+    static const Vector3f _normalized_centroids[80];
+
     /**
      * The inverses of the change-of-basis matrices for the icosahedron
      * triangles.
