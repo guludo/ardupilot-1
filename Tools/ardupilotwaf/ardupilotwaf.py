@@ -207,21 +207,21 @@ def ap_find_tests(bld, use=[]):
 _versions = []
 
 @conf
-def ap_version_append(bld, k, v):
-    _versions.append((k, os.environ.get(k, v)))
+def ap_version_append(ctx, k, v):
+    ctx.env['AP_VERSION_ITEMS'] += [(k, os.environ.get(k, v))]
 
 @conf
-def ap_version_append_str(bld, k, v):
-    _versions.append((k, '"{}"'.format(os.environ.get(k, v))))
+def ap_version_append_str(ctx, k, v):
+    ctx.ap_version_append(k, '"{}"'.format(os.environ.get(k, v)))
 
 @conf
-def write_version_header(bld):
-    header = bld.bldnode.make_node('ap_version.h').abspath()
+def write_version_header(ctx):
+    header = ctx.bldnode.make_node('ap_version.h').abspath()
 
     with open(header, 'w') as f:
         print('#pragma once\n', file=f)
 
-        for k, v in _versions:
+        for k, v in ctx.env['AP_VERSION_ITEMS']:
             print('#define {} {}'.format(k, v), file=f)
 
 @conf

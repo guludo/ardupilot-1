@@ -254,8 +254,13 @@ def build(bld):
 
     _build_recursion(bld)
 
-    bld(name='ap_version', target='ap_version.h', rule=bld.write_version_header,
-            group='dynamic_sources')
+    bld(
+        name='ap_version',
+        target='ap_version.h',
+        vars=['AP_VERSION_ITEMS'],
+        rule=bld.write_version_header,
+        group='dynamic_sources',
+    )
 
 
 ardupilotwaf.build_command('check',
