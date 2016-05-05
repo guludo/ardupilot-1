@@ -1,3 +1,6 @@
+#ifdef WAF_BUILD_SYSTEM
+#include "ap_version.h"
+#endif
 #include "DFMessageWriter.h"
 
 extern const AP_HAL::HAL& hal;

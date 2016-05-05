@@ -118,6 +118,7 @@ def configure(cfg):
 
     # Always use system extensions
     cfg.define('_GNU_SOURCE', 1)
+    cfg.define('WAF_BUILD_SYSTEM', 1)
 
     cfg.write_config_header(os.path.join(cfg.variant, 'ap_config.h'))
 
@@ -162,6 +163,10 @@ def _build_dynamic_sources(bld):
         ],
     )
 
+    bld.env.prepend_value('INCLUDES', [
+        bld.bldnode.abspath(),
+    ])
+
 def _build_common_taskgens(bld):
     # NOTE: Static library with vehicle set to UNKNOWN, shared by all
     # the tools and examples. This is the first step until the
@@ -178,6 +183,9 @@ def _build_common_taskgens(bld):
 
     if bld.env.HAS_GBENCHMARK:
         bld.libbenchmark()
+
+    bld(name='ap_version', target='ap_version.h', rule=bld.write_version_header,
+            group='dynamic_sources')
 
 def _build_recursion(bld):
     common_dirs_patterns = [
