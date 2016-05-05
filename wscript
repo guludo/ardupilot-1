@@ -184,9 +184,6 @@ def _build_common_taskgens(bld):
     if bld.env.HAS_GBENCHMARK:
         bld.libbenchmark()
 
-    bld(name='ap_version', target='ap_version.h', rule=bld.write_version_header,
-            group='dynamic_sources')
-
 def _build_recursion(bld):
     common_dirs_patterns = [
         # TODO: Currently each vehicle also generate its own copy of the
@@ -256,6 +253,10 @@ def build(bld):
     _build_common_taskgens(bld)
 
     _build_recursion(bld)
+
+    bld(name='ap_version', target='ap_version.h', rule=bld.write_version_header,
+            group='dynamic_sources')
+
 
 ardupilotwaf.build_command('check',
     program_group_list='all',
