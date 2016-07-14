@@ -36,51 +36,6 @@ public:
     bool update() override;
 
 private:
-    enum OSR {
-        OSR4 = 0,
-        OSR2,
-        NORMAL,
-    };
-
-    enum ODR {
-        ODR_25Hz=6,
-        ODR_50Hz,
-        ODR_100Hz,
-        ODR_200Hz,
-        ODR_400Hz,
-        ODR_800Hz,
-        ODR_1600Hz,
-    };
-
-    enum AccelRange {
-        /* For convenience, use sequence starting at 0 instead of bits defined
-         * in the datasheet. See #_configure_accel().*/
-        RANGE_2G = 0,
-        RANGE_4G,
-        RANGE_8G,
-        RANGE_16G,
-    };
-
-    struct AccelConfig {
-        OSR osr;
-        ODR odr;
-        AccelRange range;
-    };
-
-    enum GyroRange {
-        RANGE_2000DPS = 0,
-        RANGE_1000DPS,
-        RANGE_500DPS,
-        RANGE_250DPS,
-        RANGE_125DPS,
-    };
-
-    struct GyroConfig {
-        OSR osr;
-        ODR odr;
-        GyroRange range;
-    };
-
     struct PACKED SensorRawData {
         struct {
             uint16_t x;
@@ -128,7 +83,7 @@ private:
      *
      * @return true on success, false otherwise.
      */
-    bool _configure_accel(AccelConfig &cfg);
+    bool _configure_accel();
 
     /**
      * Configure gyroscope sensor. The device semaphore must already be
@@ -136,7 +91,7 @@ private:
      *
      * @return true on success, false otherwise.
      */
-    bool _configure_gyro(GyroConfig &cfg);
+    bool _configure_gyro();
 
     /**
      * Configure INT1 pin as watermark interrupt pin at the level of one sample

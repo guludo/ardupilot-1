@@ -35,8 +35,12 @@
 #define BMI160_REG_FIFO_DATA 0x24
 #define BMI160_REG_ACC_CONF 0x40
 #define BMI160_REG_ACC_RANGE 0x41
+            /* For convenience, use log2(range) - 1 instead of bits defined in
+             * the datasheet. See _configure_accel(). */
+#define     BMI160_ACC_RANGE_16G 3
 #define BMI160_REG_GYR_CONF 0x42
 #define BMI160_REG_GYR_RANGE 0x43
+#define     BMI160_GYR_RANGE_2000DPS 0x00
 #define BMI160_REG_FIFO_CONFIG_0 0x46
 #define BMI160_REG_FIFO_CONFIG_1 0x47
 #define     BMI160_FIFO_ACC_EN 0x40
@@ -54,6 +58,9 @@
 #define     BMI160_CMD_FIFO_FLUSH 0xB0
 #define     BMI160_CMD_SOFTRESET 0xB6
 
+#define     BMI160_OSR_NORMAL 0x20
+#define     BMI160_ODR_1600HZ 0x0C
+
 /* Datasheet says that the device powers up in less than 10ms, so waiting for
  * 10 ms before initialization is enough. */
 #define BMI160_POWERUP_DELAY_MSEC 10
@@ -67,17 +74,29 @@
 #define BMI160_ACCEL_NORMAL_POWER_MODE_DELAY_MSEC 4
 #define BMI160_GYRO_NORMAL_POWER_MODE_DELAY_MSEC 81
 
+#define BMI160_OSR BMI160_OSR_NORMAL
+#define BMI160_ODR BMI160_ODR_1600HZ
+#define BMI160_ACC_RANGE BMI160_ACC_RANGE_16G
+#define BMI160_GYR_RANGE BMI160_GYR_RANGE_2000DPS
+
+/* By looking at the datasheet, the accel range i (as defined by the macros
+ * BMI160_ACC_RANGE_*G) maps to the range bits by the function f defined:
+ *     f(0) = 3; f(i) = f(i - 1) + i + 1
+ * Which can be written as the closed formula:
+ *     f(i) = (i * (i + 3)) / 2 + 3 */
+#define BMI160_ACC_RANGE_BITS \
+    (BMI160_ACC_RANGE * (BMI160_ACC_RANGE + 3) / 2 + 3)
+
 /* The rate in Hz based on the ODR bits can be calculated with
  * 100 / (2 ^ (8 - odr) */
 #define BMI160_ODR_TO_HZ(odr_) \
     (uint16_t)(odr_ > 8 ? 100 << (odr_ - 8) : 100 >> (8 - odr_))
-#define BMI160_MAX_ODR ODR::ODR_1600Hz
 
 /* Consider number maximum of samples as four times of the expected number of
  * samples in the FIFO for the maximum ODR considering the frequency the timer
  * thread routing is called (1kHz). Round it up.*/
 #define BMI160_MAX_FIFO_SAMPLES \
-    ((4 * BMI160_ODR_TO_HZ(BMI160_MAX_ODR) + 999) / 1000)
+    ((4 * BMI160_ODR_TO_HZ(BMI160_ODR) + 999) / 1000)
 
 #define BMI160_READ_FLAG 0x80
 #define BMI160_HARDWARE_INIT_MAX_TRIES 5
@@ -114,28 +133,18 @@ AP_InertialSensor_BMI160::probe(AP_InertialSensor &imu,
 void AP_InertialSensor_BMI160::start()
 {
     bool r;
-    AccelConfig accel_cfg = {
-        .osr = NORMAL,
-        .odr = ODR_1600Hz,
-        .range = RANGE_16G,
-    };
-    GyroConfig gyro_cfg = {
-        .osr = NORMAL,
-        .odr = ODR_1600Hz,
-        .range = RANGE_2000DPS,
-    };
 
     hal.scheduler->suspend_timer_procs();
     if (!_dev->get_semaphore()->take(100)) {
         AP_HAL::panic("BMI160: Unable to get semaphore");
     }
 
-    r = _configure_accel(accel_cfg);
+    r = _configure_accel();
     if (!r) {
         AP_HAL::panic("BMI160: Unable to configure accelerometer");
     }
 
-    r = _configure_gyro(gyro_cfg);
+    r = _configure_gyro();
     if (!r) {
         AP_HAL::panic("BMI160: Unable to configure gyroscope");
     }
@@ -156,8 +165,8 @@ void AP_InertialSensor_BMI160::start()
 
     _dev->get_semaphore()->give();
 
-    _accel_instance = _imu.register_accel(BMI160_ODR_TO_HZ(accel_cfg.odr));
-    _gyro_instance = _imu.register_gyro(BMI160_ODR_TO_HZ(gyro_cfg.odr));
+    _accel_instance = _imu.register_accel(BMI160_ODR_TO_HZ(BMI160_ODR));
+    _gyro_instance = _imu.register_gyro(BMI160_ODR_TO_HZ(BMI160_ODR));
 
     hal.scheduler->resume_timer_procs();
 
@@ -188,12 +197,11 @@ void AP_InertialSensor_BMI160::_check_err_reg()
 #endif
 }
 
-bool AP_InertialSensor_BMI160::_configure_accel(AccelConfig &cfg)
+bool AP_InertialSensor_BMI160::_configure_accel()
 {
     bool r;
-    uint8_t range_bits;
 
-    r = _dev->write_register(BMI160_REG_ACC_CONF, cfg.osr << 4 | cfg.odr);
+    r = _dev->write_register(BMI160_REG_ACC_CONF, BMI160_OSR | BMI160_ODR);
     if (!r) {
         return false;
     }
@@ -201,31 +209,26 @@ bool AP_InertialSensor_BMI160::_configure_accel(AccelConfig &cfg)
 
     _check_err_reg();
 
-    /* By looking at the datasheet, an AccelRange i maps to the range bits by
-     * the function f defined:
-     *     f(0) = 3; f(i) = f(i - 1) + i + 1
-     * Which can be written as the closed formula:
-     *     f(i) = (i * (i + 3)) / 2 + 3 */
-    range_bits = cfg.range * (cfg.range + 3) / 2 + 3;
-    r = _dev->write_register(BMI160_REG_ACC_RANGE, range_bits);
+    r = _dev->write_register(BMI160_REG_ACC_RANGE, BMI160_ACC_RANGE_BITS);
     if (!r) {
         return false;
     }
     hal.scheduler->delay(1);
 
-    /* The sensitivity in LSb/g for an AccelRange i can be calculated with:
+    /* The sensitivity in LSb/g for an accel range i (as defined by the macros
+     * BMI160_ACC_RANGE_*G) can be calculated with:
      *     2 ^ 16 / (2 * 2 ^ (i + 1)) = 2 ^(14 - i)
      * That matches the typical values in the datasheet. */
-    _accel_scale = GRAVITY_MSS / (1 << (14 - cfg.range));
+    _accel_scale = GRAVITY_MSS / (1 << (14 - BMI160_ACC_RANGE));
 
     return true;
 }
 
-bool AP_InertialSensor_BMI160::_configure_gyro(GyroConfig &cfg)
+bool AP_InertialSensor_BMI160::_configure_gyro()
 {
     bool r;
 
-    r = _dev->write_register(BMI160_REG_GYR_CONF, cfg.osr << 4 | cfg.odr);
+    r = _dev->write_register(BMI160_REG_GYR_CONF, BMI160_OSR | BMI160_ODR);
     if (!r) {
         return false;
     }
@@ -233,16 +236,16 @@ bool AP_InertialSensor_BMI160::_configure_gyro(GyroConfig &cfg)
 
     _check_err_reg();
 
-    r = _dev->write_register(BMI160_REG_GYR_RANGE, cfg.range);
+    r = _dev->write_register(BMI160_REG_GYR_RANGE, BMI160_GYR_RANGE);
     if (!r) {
         return false;
     }
     hal.scheduler->delay(1);
 
-    /* The sensitivity in LSb/degrees/s a GyroRange i can be calculated with:
+    /* The sensitivity in LSb/degrees/s a gyro range i can be calculated with:
      *     2 ^ 16 / (2 * 2000 / 2 ^ i) = 2 ^ (14 + i) / 1000
      * The scale is the inverse of that. */
-    _gyro_scale = radians(1000.f / (1 << (14 + cfg.range)));
+    _gyro_scale = radians(1000.f / (1 << (14 + BMI160_GYR_RANGE)));
 
     return true;
 }
