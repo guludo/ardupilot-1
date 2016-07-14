@@ -98,9 +98,12 @@ private:
                              AP_HAL::OwnPtr<AP_HAL::Device> dev,
                              bool use_fifo);
 
-#ifdef BMI160_DEBUG
+    /**
+     * If the macro BMI160_DEBUG is defined, check if there are errors reported
+     * on the device's error register and panic if so. The implementation is
+     * empty if the BMI160_DEBUG isn't defined.
+     */
     void _check_err_reg();
-#endif
 
     /**
      * Try to perform initialization of the BMI160 device.

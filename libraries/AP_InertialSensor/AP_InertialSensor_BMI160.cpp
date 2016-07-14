@@ -88,12 +88,6 @@
 #define BMI160_READ_FLAG 0x80
 #define BMI160_HARDWARE_INIT_MAX_TRIES 5
 
-#ifdef BMI160_DEBUG
-#    define BMI160_CHECK_ERR_REG() _check_err_reg()
-#else
-#    define BMI160_CHECK_ERR_REG()
-#endif
-
 #define BMI160_INT1_GPIO -1
 
 extern const AP_HAL::HAL& hal;
@@ -195,9 +189,9 @@ bool AP_InertialSensor_BMI160::update()
     return true;
 }
 
-#ifdef BMI160_DEBUG
 void AP_InertialSensor_BMI160::_check_err_reg()
 {
+#ifdef BMI160_DEBUG
     uint8_t v;
     bool r;
 
@@ -208,9 +202,8 @@ void AP_InertialSensor_BMI160::_check_err_reg()
     if (v) {
         AP_HAL::panic("BMI160: error detected on ERR_REG\n");
     }
-}
 #endif
-
+}
 
 bool AP_InertialSensor_BMI160::_configure_accel(AccelConfig &cfg)
 {
@@ -223,7 +216,7 @@ bool AP_InertialSensor_BMI160::_configure_accel(AccelConfig &cfg)
     }
     hal.scheduler->delay(1);
 
-    BMI160_CHECK_ERR_REG();
+    _check_err_reg();
 
     /* By looking at the datasheet, an AccelRange i maps to the range bits by
      * the function f defined:
@@ -255,7 +248,7 @@ bool AP_InertialSensor_BMI160::_configure_gyro(GyroConfig &cfg)
     }
     hal.scheduler->delay(1);
 
-    BMI160_CHECK_ERR_REG();
+    _check_err_reg();
 
     r = _dev->write_register(BMI160_REG_GYR_RANGE, cfg.range);
     if (!r) {
@@ -342,7 +335,7 @@ bool AP_InertialSensor_BMI160::_configure_fifo()
     }
     hal.scheduler->delay(1);
 
-    BMI160_CHECK_ERR_REG();
+    _check_err_reg();
 
     r = _dev->write_register(BMI160_REG_CMD, BMI160_CMD_FIFO_FLUSH);
     if (!r) {
