@@ -95,8 +95,7 @@ private:
     };
 
     AP_InertialSensor_BMI160(AP_InertialSensor &imu,
-                             AP_HAL::OwnPtr<AP_HAL::Device> dev,
-                             bool use_fifo);
+                             AP_HAL::OwnPtr<AP_HAL::Device> dev);
 
     /**
      * If the macro BMI160_DEBUG is defined, check if there are errors reported
@@ -160,11 +159,6 @@ private:
     void _poll_data();
 
     /**
-     * Read sample from data registers.
-     */
-    void _read_sample();
-
-    /**
      * Read samples from fifo.
      */
     void _read_fifo();
@@ -181,8 +175,6 @@ private:
 
     uint8_t _gyro_instance;
     float _gyro_scale;
-
-    bool _use_fifo;
 
     AP_HAL::DigitalSource *_int1_pin;
 };
