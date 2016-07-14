@@ -340,8 +340,8 @@ void AP_InertialSensor_BMI160::_read_fifo()
      * needs some investigation. */
     struct RawData raw_data[BMI160_MAX_FIFO_SAMPLES];
     uint16_t num_bytes;
-    uint16_t excess = 0;
-    uint8_t num_samples;
+    uint16_t excess;
+    uint8_t num_samples = 0;
     bool r = true;
 
     static_assert(sizeof(raw_data) <= 100, "Too big to keep on stack");
@@ -362,9 +362,13 @@ void AP_InertialSensor_BMI160::_read_fifo()
     if (!num_bytes) {
         goto read_fifo_end;
     }
+
+read_fifo_read_data:
     if (num_bytes > sizeof(raw_data)) {
         excess = num_bytes - sizeof(raw_data);
         num_bytes = sizeof(raw_data);
+    } else {
+        excess = 0;
     }
 
     r = _dev->read_registers(BMI160_REG_FIFO_DATA,
@@ -374,10 +378,12 @@ void AP_InertialSensor_BMI160::_read_fifo()
         goto read_fifo_end;
     }
 
-    if (excess) {
+    /* Read again just once */
+    if (excess && num_samples) {
         hal.console->printf("BMI160: dropping %u samples from fifo\n",
                             (uint8_t)(excess / sizeof(struct RawData)));
         _dev->write_register(BMI160_REG_CMD, BMI160_CMD_FIFO_FLUSH);
+        excess = 0;
     }
 
     num_samples = num_bytes / sizeof(struct RawData);
@@ -397,6 +403,11 @@ void AP_InertialSensor_BMI160::_read_fifo()
 
         _notify_new_accel_raw_sample(_accel_instance, accel);
         _notify_new_gyro_raw_sample(_gyro_instance, gyro);
+    }
+
+    if (excess) {
+        num_bytes = excess;
+        goto read_fifo_read_data;
     }
 
 read_fifo_end:
