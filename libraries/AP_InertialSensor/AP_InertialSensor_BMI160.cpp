@@ -105,6 +105,19 @@
 
 extern const AP_HAL::HAL& hal;
 
+struct PACKED RawData {
+    struct {
+        le16_t x;
+        le16_t y;
+        le16_t z;
+    } gyro;
+    struct {
+        le16_t x;
+        le16_t y;
+        le16_t z;
+    } accel;
+};
+
 AP_InertialSensor_BMI160::AP_InertialSensor_BMI160(AP_InertialSensor &imu,
                                                    AP_HAL::OwnPtr<AP_HAL::Device> dev)
     : AP_InertialSensor_Backend(imu)
@@ -292,7 +305,7 @@ bool AP_InertialSensor_BMI160::_configure_fifo()
 
     /* The unit for the FIFO watermark is 4 bytes. */
     r = _dev->write_register(BMI160_REG_FIFO_CONFIG_0,
-                             sizeof(SensorRawData) / 4);
+                             sizeof(struct RawData) / 4);
     if (!r) {
         hal.console->printf("BMI160: Unable to configure FIFO watermark level\n");
         return false;
@@ -325,9 +338,10 @@ void AP_InertialSensor_BMI160::_read_fifo()
      * read FIFO length and data altogether. If the prediction is wrong we can
      * prune the data retrieved case there's less than predicted. This approach
      * needs some investigation. */
-    struct SensorRawData raw_data[BMI160_MAX_FIFO_SAMPLES];
+    struct RawData raw_data[BMI160_MAX_FIFO_SAMPLES];
     uint16_t num_bytes;
     uint16_t excess = 0;
+    uint8_t num_samples;
     bool r = true;
 
     static_assert(sizeof(raw_data) <= 100, "Too big to keep on stack");
@@ -362,11 +376,28 @@ void AP_InertialSensor_BMI160::_read_fifo()
 
     if (excess) {
         hal.console->printf("BMI160: dropping %u samples from fifo\n",
-                            (uint8_t)(excess / sizeof(raw_data[0])));
+                            (uint8_t)(excess / sizeof(struct RawData)));
         _dev->write_register(BMI160_REG_CMD, BMI160_CMD_FIFO_FLUSH);
     }
 
-    _accumulate(raw_data, num_bytes / sizeof(raw_data[0]));
+    num_samples = num_bytes / sizeof(struct RawData);
+    for (uint8_t i = 0; i < num_samples; i++) {
+        Vector3f accel{(float) (int16_t)le16toh(raw_data[i].accel.y),
+                       (float) (int16_t)le16toh(raw_data[i].accel.x),
+                       (float)-(int16_t)le16toh(raw_data[i].accel.z)};
+        Vector3f gyro{(float) (int16_t)le16toh(raw_data[i].gyro.y),
+                      (float) (int16_t)le16toh(raw_data[i].gyro.x),
+                      (float)-(int16_t)le16toh(raw_data[i].gyro.z)};
+
+        accel *= _accel_scale;
+        gyro *= _gyro_scale;
+
+        _rotate_and_correct_accel(_accel_instance, accel);
+        _rotate_and_correct_gyro(_gyro_instance, gyro);
+
+        _notify_new_accel_raw_sample(_accel_instance, accel);
+        _notify_new_gyro_raw_sample(_gyro_instance, gyro);
+    }
 
 read_fifo_end:
     if (!r) {
@@ -383,27 +414,6 @@ void AP_InertialSensor_BMI160::_poll_data()
     _read_fifo();
 
     _dev->get_semaphore()->give();
-}
-
-void AP_InertialSensor_BMI160::_accumulate(SensorRawData *data, uint8_t n)
-{
-    for (uint8_t i = 0; i < n; i++) {
-        Vector3f accel{(float) (int16_t)le16toh(data[i].accel.y),
-                       (float) (int16_t)le16toh(data[i].accel.x),
-                       (float)-(int16_t)le16toh(data[i].accel.z)};
-        Vector3f gyro{(float) (int16_t)le16toh(data[i].gyro.y),
-                      (float) (int16_t)le16toh(data[i].gyro.x),
-                      (float)-(int16_t)le16toh(data[i].gyro.z)};
-
-        accel *= _accel_scale;
-        gyro *= _gyro_scale;
-
-        _rotate_and_correct_accel(_accel_instance, accel);
-        _rotate_and_correct_gyro(_gyro_instance, gyro);
-
-        _notify_new_accel_raw_sample(_accel_instance, accel);
-        _notify_new_gyro_raw_sample(_gyro_instance, gyro);
-    }
 }
 
 bool AP_InertialSensor_BMI160::_hardware_init()

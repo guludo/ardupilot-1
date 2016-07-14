@@ -36,19 +36,6 @@ public:
     bool update() override;
 
 private:
-    struct PACKED SensorRawData {
-        struct {
-            uint16_t x;
-            uint16_t y;
-            uint16_t z;
-        } gyro;
-        struct {
-            uint16_t x;
-            uint16_t y;
-            uint16_t z;
-        } accel;
-    };
-
     AP_InertialSensor_BMI160(AP_InertialSensor &imu,
                              AP_HAL::OwnPtr<AP_HAL::Device> dev);
 
@@ -117,11 +104,6 @@ private:
      * Read samples from fifo.
      */
     void _read_fifo();
-
-    /**
-     * Process raw samples and notify them.
-     */
-    void _accumulate(SensorRawData *data, uint8_t num_samples);
 
     AP_HAL::OwnPtr<AP_HAL::Device> _dev;
 
