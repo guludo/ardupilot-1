@@ -333,11 +333,6 @@ bool AP_InertialSensor_BMI160::_configure_fifo()
 
 void AP_InertialSensor_BMI160::_read_fifo()
 {
-    /* NOTE: *Maybe* we could improve this function so that it does only one
-     * SPI transaction by guessing the number of bytes in the FIFO in order to
-     * read FIFO length and data altogether. If the prediction is wrong we can
-     * prune the data retrieved case there's less than predicted. This approach
-     * needs some investigation. */
     struct RawData raw_data[BMI160_MAX_FIFO_SAMPLES];
     uint16_t num_bytes;
     uint16_t excess;
