@@ -92,11 +92,9 @@
 #define BMI160_ODR_TO_HZ(odr_) \
     (uint16_t)(odr_ > 8 ? 100 << (odr_ - 8) : 100 >> (8 - odr_))
 
-/* Consider number maximum of samples as four times of the expected number of
- * samples in the FIFO for the maximum ODR considering the frequency the timer
- * thread routing is called (1kHz). Round it up.*/
-#define BMI160_MAX_FIFO_SAMPLES \
-    ((4 * BMI160_ODR_TO_HZ(BMI160_ODR) + 999) / 1000)
+/* This number of samples should provide only one read burst operation on the
+ * FIFO most of the time (99.99%). */
+#define BMI160_MAX_FIFO_SAMPLES 8
 
 #define BMI160_READ_FLAG 0x80
 #define BMI160_HARDWARE_INIT_MAX_TRIES 5
