@@ -386,8 +386,17 @@ def configure(cfg):
 
     if cfg.env.CMAKE_MIN_VERSION:
         _check_min_version(cfg)
+	
+    generators = {
+        'NINJA': (['ninja', 'ninja-build'], 'Ninja'),
+        'MAKE': (['make'], 'Unix Makefiles'),
+    }
 
-    cfg.find_program(['ninja', 'ninja-build'], var='NINJA', mandatory=False)
-    cfg.env.CMAKE_GENERATOR_OPTION = ''
-    if cfg.env.NINJA:
-        cfg.env.CMAKE_GENERATOR_OPTION = '-GNinja'
+    for k, (names, generator) in generators.items():
+        print(names)
+        r = cfg.find_program(names, var=k, mandatory=False)
+        if r:
+            cfg.env.CMAKE_GENERATOR_OPTION = '-G%s' % generator
+            break
+    else:
+            cfg.env.CMAKE_GENERATOR_OPTION = ''
